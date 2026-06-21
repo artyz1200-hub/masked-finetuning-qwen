@@ -72,4 +72,7 @@ The summary plots clearly illustrate the substantial improvement achieved across
 
 ##  How to repeat results?
 
+You can find MAIN.ipynb
 
+Open it in Google Collab and run using Tesla T4
+(or localy inside VS CODE)
