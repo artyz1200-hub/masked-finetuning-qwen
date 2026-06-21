@@ -1,7 +1,0 @@
-transformers
-datasets 
-trl 
-peft 
-accelerate 
-scikit-learn 
-matplotlib

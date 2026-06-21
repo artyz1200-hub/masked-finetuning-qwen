@@ -151,10 +151,31 @@ The summary plots clearly illustrate the substantial improvement achieved across
 ![Aggregated Performance Trajectory](image-3.png)
 
 
-#  How to repeat results?
+## Reproducibility: How to Run
 
-## 1.You can find MAIN.ipynb
+To reproduce the results, use the notebook `MAIN.ipynb`.
 
-## 2.Open it in Google Collab and run using Tesla T4 (or localy inside VS CODE)
+### 1. Install dependencies
+
+This repository now includes a root-level `requirements.txt` generated from the imports and package setup used in `MAIN.ipynb`.
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Run the notebook
+
+Choose one of the following environments:
+
+- Google Colab (recommended): Open `MAIN.ipynb`, switch runtime to GPU (Tesla T4 or equivalent), and run all cells.
+- Local VS Code / Jupyter: Open `MAIN.ipynb` in VS Code and run all cells in order using a Python environment with the installed dependencies.
+
+### 3. Dataset path
+
+The notebook expects the sample dataset at:
+
+`data/patent_sample_data.csv`
+
+No additional setup is required if you run from the project root.
 
 

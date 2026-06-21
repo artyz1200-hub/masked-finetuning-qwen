@@ -1,0 +1,11 @@
+accelerate>=1.1.0
+datasets
+matplotlib
+numpy
+pandas
+peft
+scikit-learn
+torch
+transformers
+jupyter
+ipykernel
