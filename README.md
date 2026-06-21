@@ -8,6 +8,83 @@ The project implements **Masked Instruction Fine-Tuning (Target-Only Masking)** 
 
 ---
 
+⚙️ Inference Pipeline
+
+For evaluation and inference, the model operates in a chat-based format using the native Qwen 3 chat template.
+
+The system prompt constrains the model to generate only valid 3-character IPC codes, while the user prompt contains a truncated patent abstract. Generation is performed with low-temperature sampling to minimize hallucinations and encourage deterministic outputs.
+
+```python
+messages = [
+    {
+        "role": "system",
+        "content": (
+            "You are an expert patent classifier. "
+            "Classify patents using 3-character IPC codes "
+            "(e.g. B23, H01). "
+            "Provide only the codes separated by commas, "
+            "no duplicates."
+        )
+    },
+    {
+        "role": "user",
+        "content": f"Patent: {text[:200]}"
+    }
+]
+
+formatted_text = tokenizer.apply_chat_template(
+    messages,
+    tokenize=False,
+    add_generation_prompt=True,
+    enable_thinking=False
+)
+```
+
+The generated output is decoded and post-processed to obtain the final IPC prediction.
+
+🏗️ Training Data Preparation
+
+Training examples are transformed into a conversational format consisting of system, user, and assistant messages. The assistant response contains the ground-truth IPC labels.
+
+```python
+messages = [
+    {
+        "role": "system",
+        "content": (
+            "You are an expert patent classifier. "
+            "Classify patents using 3-character IPC codes "
+            "(e.g. B23, H01). "
+            "Provide only the codes separated by commas, "
+            "no duplicates."
+        )
+    },
+    {
+        "role": "user",
+        "content": f"Patent: {example['text'][:200]}"
+    },
+    {
+        "role": "assistant",
+        "content": example['ipc_codes']
+    }
+]
+```
+
+After applying the chat template, the dataset is tokenized with a maximum sequence length of 512 tokens.
+
+To implement Target-Only Masking, the loss is computed exclusively on assistant-generated tokens. All preceding prompt tokens are masked using:
+
+
+```python
+response_template = "<|im_start|>assistant\n"
+
+data_collator = CompletionOnlyDataCollator(
+    tokenizer=tokenizer,
+    response_template=response_template,
+)
+```
+
+This approach prevents gradients from being affected by prompt engineering artifacts and focuses optimization solely on the target IPC labels.
+
 ## 📊 Performance Metrics
 
 The table below compares the baseline model and the fine-tuned checkpoint. Evaluation was performed using both a strict **Exact Match** criterion and more flexible multi-class classification metrics.
@@ -29,6 +106,10 @@ The training process was fully optimized for deployment on commercially accessib
 * **Hardware:** Single **NVIDIA Tesla T4** GPU (16 GB VRAM).
 * **Parameter Efficiency:** **LoRA (Low-Rank Adaptation)** was employed with rank $r=16$ and scaling factor $\alpha=32$. Less than 2% of the model parameters were updated.
 * **Loss Isolation (Target-Only Masking):** Using `DataCollatorForCompletionOnlyLM`, all prompt tokens preceding the `<|im_start|>assistant\n` tag were masked out, ensuring that the loss was computed solely on assistant-generated tokens.
+
+## Production Inference Reference
+
+This section demonstrates how to initialize the fine-tuned checkpoint from local storage and execute standalone inference on unseen raw patent text using the unified chat template format.
 
 ### Training Logs and Convergence
 
@@ -70,9 +151,10 @@ The summary plots clearly illustrate the substantial improvement achieved across
 ![Aggregated Performance Trajectory](image-3.png)
 
 
-##  How to repeat results?
+#  How to repeat results?
 
-You can find MAIN.ipynb
+## 1.You can find MAIN.ipynb
 
-Open it in Google Collab and run using Tesla T4
-(or localy inside VS CODE)
+## 2.Open it in Google Collab and run using Tesla T4 (or localy inside VS CODE)
+
+
